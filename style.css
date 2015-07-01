@@ -1,0 +1,17 @@
+h2{
+  color:blue;
+  background:grey;
+  text-align: center;
+}
+.roster{
+    color:green;
+    text-align: center;
+}
+.homePageButton{
+  float:left;
+  clear:left;
+  width:15%;
+}
+.rosterButton{
+  width:20%
+}
