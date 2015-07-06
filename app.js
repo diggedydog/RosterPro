@@ -99,32 +99,97 @@ var setRosters = function(rosterObj) {
 }
 
 var makeNameHtml = function(playerName, playerNumber) {
-    return "<li>" + playerName + "  <button id=\"" + playerName
-        + "\">edit</button></li>";
+    return "<li id=\"player" + playerName + "\"text>" + playerName + " <button id=\"player" + playerName +
+        "\">edit</button></li>";
 }
 var displayRoster = function(nameOfRoster) {
     updatePlayers(getRosters()[nameOfRoster]);
 }
 
+var makeNameTextBox = function(playerName) {
+    return "<li><input class=\"playerNameEdit\" value=\"" + playerName.substring(6)
+        + "\"/> <button id =\"change" + playerName + "\" autofocus=\"true\">Change</button>" +
+        "<button id=\"del" + playerName + "\" autofocus=\"true\">Delete</button>";
+}
+
+var parsePlayers = function(players) {
+    var result = []
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].substring(4, 5) != "<") {
+            result.push(players[i].substring(8, players[i].indexOf("\"text")));
+        } else {
+            result.push(players[i]);
+        }
+    }
+    return result;
+}
+
 $(document).ready(function() {
     showPage("home");
+    if (getRosters() === null || getRosters() === undefined) {
+        myApp.rosters = {};
+        setRosters({});
+    }
     myApp.rosters=getRosters();
     $("#playerName").val("");
-    $("#addPlayerbtn").click(function(){
-        if (myApp.fromEdit) {
-            playerNumer = getRosters()[myApp.currentRoster].length;
+    
+    
+    $(".addPlayerbtn").click(function(){
+        var repeat = false;
+        for (var i = 0; i < myApp.players.length; i++) {
+            console.log(parsePlayers(myApp.players)[i]);
+            console.log($("#playerName").val());
+            if (parsePlayers(myApp.players)[i] === "player" + $("#playerName").val()) {
+                repeat = true;
+                alert("You already have a player of that name");
+            }
         }
-        if ($("#playerName").val() != "") {
-            myApp.players.push(makeNameHtml($("#playerName").val(), myApp.playerNumber));
-            $("#rosterList").on("click","#" + $("#playerName").val(), function(){
+        if (!repeat) {
+            console.log("cool");
+        
+            if (myApp.fromEdit) {
+                playerNumber = getRosters()[myApp.currentRoster].length;
                 
-});
-            myApp.playerNumber++;
-        }
-        
-        
-        updatePlayers(myApp.players);
-        
+            } else {
+                playerNumber = myApp.players.length;
+            }
+            
+            if ($("#playerName").val() != "") {
+                myApp.players.push(makeNameHtml($("#playerName").val()));
+                $("#rosterList").on("click", "#player" + $("#playerName").val(), editButtonClicked = function() {
+                console.log(this);
+                console.log("function called");
+                var playerNames = parsePlayers(myApp.players);
+                    
+                    var index = playerNames.indexOf(this.id);
+                    playerNames[index] =
+                                makeNameTextBox(this.id, myApp.playerNumber);
+                    $("#rosterList").on("click", "#del" + this.id, function() {
+                        console.log(index);
+                        myApp.players.splice(index, index + 1);
+                        
+                        playerNames.splice(index, index + 1);
+                        index = -1;
+                        updatePlayers(myApp.players);
+                        displayRoster(myApp.players);
+                    })
+                    $("#rosterList").on("click", "#change" + this.id, function() {
+                        myApp.players[index] = makeNameHtml($(".playerNameEdit").val());
+                        $("#rosterList").on("click", "#player" + $(".playerNameEdit").val(), editButtonClicked());
+                        updatePlayers(myApp.players);
+                        displayRoster(myApp.players);
+                    })
+                    console.log(parsePlayers(myApp.players), index);
+                    myApp.players[index] = playerNames[index];
+                    updatePlayers(myApp.players);
+                    displayRoster(myApp.players);
+            });
+                myApp.playerNumber++;
+            }
+            
+            
+            updatePlayers(myApp.players);
+        }    
     })
     var clearRoster = function() {
         myApp.players = [];
@@ -177,15 +242,13 @@ $(document).ready(function() {
             myApp.rosters = getRosters();
             updateRosterEdit(myApp.rosters);
         } else if (myApp.fromEdit) {
-            console.log(myApp.players);
             replaceRoster(myApp.currentRoster, myApp.players);
             displayRoster(myApp.currentRoster);
             myApp.currentRoster = "";
             myApp.rosters = getRosters();
             updateRosterEdit(myApp.rosters);
             
-            showPage("editRosterSelect");
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!FIXMEEEEE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//    
+            showPage("editRosterSelect"); 
         } else {
             showPage("home");
         }
@@ -199,6 +262,7 @@ $(document).ready(function() {
             myApp.rosters = getRosters();
             clearRoster();
             updateRosterEdit(getRosters());
+            myApp.fromEdit = false;
             showPage("editRosterSelect");
         }
     })
